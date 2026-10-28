@@ -1,0 +1,7 @@
+# Archivos generados por Maven
+**/target/
+
+# Archivos de NetBeans y del sistema
+**/nbproject/private/
+**/.DS_Store
+Thumbs.db

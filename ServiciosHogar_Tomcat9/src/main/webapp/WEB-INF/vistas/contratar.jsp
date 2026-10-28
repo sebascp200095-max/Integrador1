@@ -1,0 +1,10 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %><%@ page import="java.math.BigDecimal" %>
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Solicitar servicio | ServiciosHogar</title><link rel="stylesheet" href="${pageContext.request.contextPath}/css/estilos.css"></head><body>
+<header class="navbar"><a class="logo" href="${pageContext.request.contextPath}/"><span class="logo-icon">S</span>ServiciosHogar</a><nav><a href="${pageContext.request.contextPath}/servicios">Volver al catálogo</a></nav></header>
+<main class="section"><section class="auth-card" style="max-width:680px;margin:auto"><span class="eyebrow">NUEVA SOLICITUD</span><h1 style="text-align:left"><%=request.getAttribute("titulo")%></h1><p class="muted">Proveedor: <strong><%=request.getAttribute("proveedor")%></strong></p><p><%=request.getAttribute("descripcionServicio")%></p><p class="price">S/ <%=request.getAttribute("precio")%></p>
+<%if(request.getParameter("error")!=null){%><div class="alert">Completa todos los campos para continuar.</div><%}%>
+<form method="post" action="${pageContext.request.contextPath}/contratar"><input type="hidden" name="servicioId" value="<%=request.getAttribute("servicioId")%>">
+<label>Describe qué necesitas reparar<textarea class="field" name="problema" rows="4" required placeholder="Cuéntanos cuál es el problema..."></textarea></label>
+<label>Dirección donde se realizará el servicio<input class="field" name="direccion" maxlength="250" required placeholder="Dirección completa"></label>
+<label>Fecha y hora preferida<input class="field" type="datetime-local" name="fecha" required></label>
+<button class="btn btn-primary full" type="submit">Enviar solicitud de contratación</button></form><p class="muted">Esta acción registra una solicitud pendiente; no realiza ningún cobro.</p></section></main></body></html>

@@ -1,0 +1,119 @@
+CREATE DATABASE IF NOT EXISTS servicios_hogar
+ CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE servicios_hogar;
+
+CREATE TABLE IF NOT EXISTS usuarios (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT,
+ nombre VARCHAR(100) NOT NULL,
+ correo VARCHAR(150) NOT NULL UNIQUE,
+ password_hash VARCHAR(100) NOT NULL,
+ telefono VARCHAR(25),
+ rol ENUM('COMPRADOR','PROVEEDOR','ADMIN') NOT NULL DEFAULT 'COMPRADOR',
+ estado ENUM('ACTIVO','BLOQUEADO') NOT NULL DEFAULT 'ACTIVO',
+ fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS perfiles_proveedor (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT,
+ usuario_id BIGINT NOT NULL UNIQUE,
+ descripcion TEXT,
+ foto_url VARCHAR(500) DEFAULT NULL,
+ experiencia_anios INT NOT NULL DEFAULT 0,
+ tarifa_referencial DECIMAL(10,2) NOT NULL DEFAULT 0,
+ verificacion ENUM('PENDIENTE','APROBADO','RECHAZADO') NOT NULL DEFAULT 'PENDIENTE',
+ disponibilidad BOOLEAN NOT NULL DEFAULT TRUE,
+ FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+
+CREATE TABLE IF NOT EXISTS categorias (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT,
+ nombre VARCHAR(80) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS servicios (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT,
+ proveedor_id BIGINT NOT NULL,
+ categoria_id BIGINT NOT NULL,
+ titulo VARCHAR(120) NOT NULL,
+ descripcion TEXT NOT NULL,
+ precio DECIMAL(10,2) NOT NULL,
+ activo BOOLEAN NOT NULL DEFAULT TRUE,
+ fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (proveedor_id) REFERENCES perfiles_proveedor(id),
+ FOREIGN KEY (categoria_id) REFERENCES categorias(id)
+);
+
+CREATE TABLE IF NOT EXISTS portafolio (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT,
+ proveedor_id BIGINT NOT NULL,
+ titulo VARCHAR(120) NOT NULL,
+ descripcion TEXT,
+ imagen_url VARCHAR(500) NOT NULL,
+ fecha_publicacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (proveedor_id) REFERENCES perfiles_proveedor(id)
+);
+
+CREATE TABLE IF NOT EXISTS solicitudes (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT,
+ comprador_id BIGINT NOT NULL,
+ servicio_id BIGINT NOT NULL,
+ descripcion_problema TEXT NOT NULL,
+ direccion VARCHAR(250) NOT NULL,
+ fecha_solicitada DATETIME NOT NULL,
+ estado ENUM('PENDIENTE','ACEPTADA','RECHAZADA','EN_PROCESO','FINALIZADA','CANCELADA')
+   NOT NULL DEFAULT 'PENDIENTE',
+ precio_acordado DECIMAL(10,2) NOT NULL,
+ fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (comprador_id) REFERENCES usuarios(id),
+ FOREIGN KEY (servicio_id) REFERENCES servicios(id)
+);
+
+CREATE TABLE IF NOT EXISTS pagos (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT,
+ solicitud_id BIGINT NOT NULL,
+ comprador_id BIGINT NOT NULL,
+ importe DECIMAL(10,2) NOT NULL,
+ metodo VARCHAR(40) NOT NULL DEFAULT 'SIMULADO',
+ estado ENUM('PENDIENTE','APROBADO','RECHAZADO','REEMBOLSADO') NOT NULL DEFAULT 'PENDIENTE',
+ referencia VARCHAR(100) UNIQUE,
+ fecha_pago TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (solicitud_id) REFERENCES solicitudes(id),
+ FOREIGN KEY (comprador_id) REFERENCES usuarios(id)
+);
+
+CREATE TABLE IF NOT EXISTS resenas (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT,
+ solicitud_id BIGINT NOT NULL UNIQUE,
+ comprador_id BIGINT NOT NULL,
+ proveedor_id BIGINT NOT NULL,
+ puntuacion TINYINT NOT NULL,
+ comentario TEXT,
+ fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ CHECK (puntuacion BETWEEN 1 AND 5),
+ FOREIGN KEY (solicitud_id) REFERENCES solicitudes(id),
+ FOREIGN KEY (comprador_id) REFERENCES usuarios(id),
+ FOREIGN KEY (proveedor_id) REFERENCES perfiles_proveedor(id)
+);
+
+CREATE TABLE IF NOT EXISTS mensajes (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT,
+ solicitud_id BIGINT NOT NULL,
+ remitente_id BIGINT NOT NULL,
+ contenido TEXT NOT NULL,
+ fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (solicitud_id) REFERENCES solicitudes(id),
+ FOREIGN KEY (remitente_id) REFERENCES usuarios(id)
+);
+
+CREATE TABLE IF NOT EXISTS notificaciones (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT,
+ usuario_id BIGINT NOT NULL,
+ mensaje VARCHAR(255) NOT NULL,
+ leida BOOLEAN NOT NULL DEFAULT FALSE,
+ fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+
+INSERT IGNORE INTO categorias(nombre) VALUES
+('Electricidad'),('Gasfitería'),('Reparación de electrodomésticos'),
+('Pintura'),('Carpintería'),('Mantenimiento general');
